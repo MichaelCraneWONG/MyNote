@@ -1,0 +1,25 @@
+内存管理
+
+## 防止Block循环引用
+```objective-C
+MyViewController *myController = [[MyViewController alloc] init…];
+// ...
+MyViewController * __weak weakMyController = myController;
+myController.completionHandler = ^(NSInteger result) {
+    MyViewController *strongMyController = weakMyController;
+        if (strongMyController) {
+            //防止在把weakSelf转换成strongSelf之前weakSelf就已经为nil
+            [strongMyController dismissViewControllerAnimated:YES completion:nil];
+            // ...
+        }
+        else {
+            // Probably nothing...
+        }
+};
+```
+先将强引用的对象转为弱引用指针，防止了Block和对象之间的循环引用。再在Block的第一句代码出将weakSelf的弱引用转换成strongSelf这样的强引用指针，防止了多线程和ARC环境下弱引用随时被释放的问题（因为强引用的引用计数至少为1）。
+
+[Transitioning to ARC Release Notes](https://developer.apple.com/library/ios/releasenotes/ObjectiveC/RN-TransitioningToARC/Introduction/Introduction.html)
+
+
+
